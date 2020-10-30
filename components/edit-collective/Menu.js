@@ -256,7 +256,9 @@ const EditCollectiveMenu = ({ collective, selectedSection }) => {
       )}
       {collective.isHost && (
         <Fragment>
-          {renderMenuItem(getSectionInfo(EDIT_COLLECTIVE_SECTIONS.HOST_PLAN))}
+          {!['USER', 'ORGANIZATION'].includes(collective.type) && <MenuDivider />}
+          {['USER', 'ORGANIZATION'].includes(collective.type) &&
+            renderMenuItem(getSectionInfo(EDIT_COLLECTIVE_SECTIONS.HOST_PLAN))}
           {renderMenuItem(getSectionInfo(EDIT_COLLECTIVE_SECTIONS.EXPENSES_PAYOUTS))}
           {renderMenuItem(getSectionInfo(EDIT_COLLECTIVE_SECTIONS.INVOICES_RECEIPTS))}
           {renderMenuItem(getSectionInfo(EDIT_COLLECTIVE_SECTIONS.RECEIVING_MONEY))}

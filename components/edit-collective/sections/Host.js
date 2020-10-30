@@ -18,8 +18,10 @@ import HostsWithData from '../../HostsWithData';
 import Link from '../../Link';
 import StyledButton from '../../StyledButton';
 import Modal, { ModalBody, ModalFooter, ModalHeader } from '../../StyledModal';
-import { P } from '../../Text';
+import { H3, P } from '../../Text';
 import CreateHostFormWithData from '../CreateHostFormWithData';
+
+import ContributionCategoryPicker from '../../accept-financial-contributions/ContributionCategoryPicker';
 
 const Option = styled.div`
   h2 {
@@ -93,6 +95,34 @@ class Host extends React.Component {
     const hostMembership = get(collective, 'members', []).find(m => m.role === 'HOST');
 
     const closeModal = () => this.setState({ showModal: false });
+
+    if (get(collective, 'host.id') === collective.id) {
+      return (
+        <Fragment>
+          <p>
+            <FormattedMessage
+              id="editCollective.selfHost.label"
+              defaultMessage="{type, select, COLLECTIVE {Your Collective} FUND {Your Fund}} is currently self hosted, it doesn't use a Fiscal Host."
+              values={{
+                type: collective.type,
+              }}
+            />
+          </p>
+          <p>
+            <Button bsStyle="primary" type="submit" onClick={() => this.changeHost()} className="removeHostBtn">
+              <FormattedMessage id="editCollective.selfHost.removeBtn" defaultMessage="Remove Self Hosting" />
+            </Button>
+          </p>
+          <Fineprint>
+            <FormattedMessage
+              id="editCollective.host.change.removeFirst"
+              defaultMessage="Once removed, {type, select, COLLECTIVE {your Collective} FUND {your Fund}} won't be able to accept financial contributions anymore. You will be able to apply to another Fiscal Host."
+              values={{ type: collective.type }}
+            />
+          </Fineprint>
+        </Fragment>
+      );
+    }
 
     if (get(collective, 'host.id')) {
       const name = collective.host.name;
@@ -275,6 +305,14 @@ class Host extends React.Component {
             }
           `}
         </style>
+
+        <H3 mb={4}>
+          <FormattedMessage
+            id="acceptContributions.picker.subtitle"
+            defaultMessage="Who will hold money on behalf of the Collective?"
+          />
+        </H3>
+
         <Option id="noHost">
           <Flex>
             <Box width="50px" mr={2}>
@@ -288,13 +326,52 @@ class Host extends React.Component {
             <Box mb={4}>
               <h2>
                 <label htmlFor="host-radio-noHost">
-                  <FormattedMessage id="collective.edit.host.noHost.title" defaultMessage="No Fiscal Host" />
+                  <FormattedMessage id="collective.edit.host.notConfigured.title" defaultMessage="Not configured" />
                 </label>
               </h2>
               <FormattedMessage
                 id="collective.edit.host.noHost.description"
-                defaultMessage="Without a Fiscal Host, you can't collect money. You can still use other features, like editing your profile page, submitting expenses, and posting updates."
+                defaultMessage="Without a Fiscal Host or Self Hosting configured, you can't collect money. You can still use other features, like editing your profile page, submitting expenses, and posting updates."
               />
+            </Box>
+          </Flex>
+        </Option>
+
+        <Option id="selfHost">
+          <Flex>
+            <Box width="50px" mr={2}>
+              <Radio
+                id="host-radio-selfHost"
+                checked={selectedOption === 'selfHost'}
+                onChange={() => this.updateSelectedOption('selfHost')}
+                className="hostRadio"
+              />
+            </Box>
+            <Box mb={4}>
+              <h2>
+                <label htmlFor="host-radio-selfHost">
+                  <FormattedMessage
+                    id="collective.edit.host.selfHost.title"
+                    defaultMessage="Ourselves (no Fiscal Host)"
+                  />
+                </label>
+              </h2>
+              <FormattedMessage
+                id="collective.edit.host.selfHost.description"
+                defaultMessage="Simply connect your bank account to get money in and out. You will be responsible for accounting, invoices, taxes, admin, payments, and liability."
+              />
+              {selectedOption === 'selfHost' && LoggedInUser && (
+                <Flex justifyContent="space-between" alignItems="flex-end" mt={3}>
+                  <Box>
+                    <Button bsStyle="primary" type="submit" onClick={() => this.changeHost({ id: collective.id })}>
+                      <FormattedMessage
+                        id="host.selfHost.confirm"
+                        defaultMessage="Hold money ourselves, no Fiscal Host"
+                      />
+                    </Button>
+                  </Box>
+                </Flex>
+              )}
             </Box>
           </Flex>
         </Option>
@@ -312,12 +389,15 @@ class Host extends React.Component {
             <Box mb={4}>
               <h2>
                 <label htmlFor="host-radio-ownHost">
-                  <FormattedMessage id="collective.edit.host.useOwn.title" defaultMessage="Use own Fiscal Host" />
+                  <FormattedMessage
+                    id="collective.edit.host.useOwn.title"
+                    defaultMessage="Our organization (as Fiscal Host)"
+                  />
                 </label>
               </h2>
               <FormattedMessage
                 id="collective.edit.host.useOwn.description"
-                defaultMessage="Hold funds for one or more Collectives in your bank account. You will be responsible for paying out approved expenses and handling accounting and taxes."
+                defaultMessage="Hold funds for one or more Collectives on your Organization's bank account. The Organization will be responsible for accounting, invoices, taxes, admin, payments, and liability."
               />
               &nbsp;
               <a href="https://docs.opencollective.com/help/fiscal-hosts/become-a-fiscal-host">
